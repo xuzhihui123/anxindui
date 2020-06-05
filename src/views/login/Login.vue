@@ -1,7 +1,8 @@
 <template>
   <div class="login" style="min-width: 1200px">
     <div class="login-title">
-      寻导后台管理系统
+      <img src="~assets/logoT.png" alt="" style="width: 100px;">
+      安心兑后台管理系统
     </div>
     <div class="login-inner">
       <el-form :model="loginForm" status-icon ref="ruleForm" label-width="0px" class="demo-ruleForm"
@@ -12,15 +13,15 @@
         </el-form-item>
         <el-form-item prop="passWord">
           <el-input v-model="loginForm.passWord" autocomplete="off" clearable="" prefix-icon="el-icon-lock"
-                    placeholder="请输入密码"></el-input>
+                    placeholder="请输入密码" type="password"></el-input>
         </el-form-item>
-        <el-form-item prop="idenCode">
-          <el-input v-model="loginForm.idenCode" autocomplete="off" clearable="" prefix-icon="el-icon-edit-outline"
-                    placeholder="请输入验证码"></el-input>
-          <img :src="this.idenCodeData.idenCodeImg" alt="" class="idenCode-inner_img" @click="getCode">
-        </el-form-item>
+        <!--        <el-form-item prop="idenCode">-->
+        <!--          <el-input v-model="loginForm.idenCode" autocomplete="off" clearable="" prefix-icon="el-icon-edit-outline"-->
+        <!--                    placeholder="请输入验证码"></el-input>-->
+        <!--          <img :src="this.idenCodeData.idenCodeImg" alt="" class="idenCode-inner_img" @click="getCode">-->
+        <!--        </el-form-item>-->
         <el-form-item label-width="0">
-          <div class="submit" @click="loginSubmit">登&nbsp;录</div>
+          <div class="submit" @click="loginSubmit" v-loading="submitLoading">登&nbsp;录</div>
         </el-form-item>
       </el-form>
     </div>
@@ -28,7 +29,8 @@
 </template>
 
 <script>
-  import { adminlogin, getIdenCode } from "network/login";
+  import {adminlogin, getIdenCode} from "network/login";
+  import {Base64} from 'js-base64'
 
   export default {
     name: "Login",
@@ -41,52 +43,68 @@
         },
         idenCodeData: {
           idenCodeValue: "",
-          idenCodeImg: ""
-        }
+          idenCodeImg: "",
+        },
+        submitLoading: false
       };
     },
     methods: {
       //登录点击
-      loginSubmit() {
-        if (!(this.loginForm.idenCode.toLowerCase() !== this.idenCodeData.idenCodeValue) || (this.loginForm.idenCode.toUpperCase() !== this.idenCodeData.idenCodeValue)) {
-          this.getCode();
+      async loginSubmit() {
+        this.submitLoading = true
+        if (this.loginForm.userName.length === 0 || this.loginForm.passWord.length === 0) {
+          this.submitLoading = false
           return this.$message({
-            type: "error",
-            message: "请重新输入验证码！"
-          });
+            type: 'error',
+            message: '请输入完整！',
+            duration: 2000
+          })
         }
-        adminlogin({ userName: this.loginForm.userName, passWord: this.loginForm.passWord })
-          .then(d => {
-             if(d.status.code === "200"){
-                window.sessionStorage.setItem('token',d.token)
-                window.sessionStorage.setItem('username',this.loginForm.userName)
-                window.sessionStorage.setItem('power',d.power)
-                this.$message({
-                 type: "success",
-                 message: "登录成功！"
-               });
-                this.$router.push('/home')
-             }else{
-               this.$message({
-                 type: "error",
-                 message: "用户名或密码错误！"
-               });
-               this.getCode()
-             }
-          });
-      },
-      //获取验证码
-      getCode() {
-        getIdenCode().then(d => {
-          if (d.status.code === "200") {
-            this.idenCodeData.idenCodeValue = d.value;
-            this.idenCodeData.idenCodeImg = d.url;
+
+        try {
+          let d = await adminlogin({adminAccount: this.loginForm.userName, adminPassword: this.loginForm.passWord})
+          if (d.code === 500) {
+            this.submitLoading = false
+            return this.$message({
+              type: 'error',
+              message: '用户名或密码错误',
+              duration: 2000
+            })
           }
-        });
+          //登录成功保存Token
+          let token = d.data[0]
+          //保存用户名 和  姓名
+          let {adminAccount, adminName, adminId} = d.data[1]
+          localStorage.setItem('token', token)
+          localStorage.setItem('adminAcc', Base64.encode(adminAccount))
+          localStorage.setItem('adminNam', Base64.encode(adminName))
+          localStorage.setItem('power', Base64.encode(adminId + 'lancer'))
+          this.$message({
+            type: 'success',
+            message: "登录成功！"
+          })
+          this.submitLoading = false
+          this.$router.push('/')
+        } catch (error) {
+          this.$message({
+            type: 'error',
+            message: '服务器响应错误',
+            duration: 2000
+          })
+          this.submitLoading = false
+        }
+
       },
     },
     created() {
-      this.getCode();
+      document.onkeydown = (e) => {
+        if (e.keyCode === 13) {
+          this.loginSubmit()
+        }
+      }
+    },
+    destroyed() {
+      document.onkeydown = null
     }
   };
 </script>

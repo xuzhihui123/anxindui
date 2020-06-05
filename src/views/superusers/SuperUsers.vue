@@ -4,24 +4,24 @@
     <el-breadcrumb separator-class="el-icon-arrow-right">
       <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>管理员管理</el-breadcrumb-item>
-      <el-breadcrumb-item>管理员列表</el-breadcrumb-item>
+      <el-breadcrumb-item>管理员管理</el-breadcrumb-item>
     </el-breadcrumb>
     <!--    搜索-->
-    <div style="margin-top: 20px;">
-      <el-row :gutter="20">
-        <el-col :span="7">
-          <el-input placeholder="搜索管理员" @input="searchAdminUserInput" v-model="searchAdminUser"
-                    class="input-with-select" clearable>
-            <el-button slot="append" icon="el-icon-search" @click="searchAdminUsers"></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="5">
-          <el-button type="primary" @click="addAdminUser" :disabled="loginUserPower<5 ? true : false">添加管理员</el-button>
-        </el-col>
-      </el-row>
-    </div>
+    <div style="margin-top: 20px;" v-show="adminPower !==1 ? false : true">
+    <el-row :gutter="20">
+      <!--        <el-col :span="7">-->
+      <!--          <el-input placeholder="搜索管理员" @input="searchAdminUserInput" v-model="searchAdminUser"-->
+      <!--                    class="input-with-select" clearable>-->
+      <!--            <el-button slot="append" icon="el-icon-search" @click="searchAdminUsers"></el-button>-->
+      <!--          </el-input>-->
+      <!--        </el-col>-->
+      <el-col :span="5">
+        <el-button type="primary" @click="addAdminUsers" :disabled="adminPower === 1 ? false : true">添加管理员</el-button>
+      </el-col>
+    </el-row>
+  </div>
     <!--    表格-->
-    <el-card class="box-card">
+    <el-card class="box-card" v-show="adminPower!==1 ? false : true" v-loading="isLoading">
       <el-table
               :data="tableData"
               border
@@ -33,47 +33,55 @@
                 width="50">
         </el-table-column>
         <el-table-column
-                prop="userName"
+                prop="adminAccount"
                 label="用户名"
                 width="180">
         </el-table-column>
         <el-table-column
-                prop="passWord"
+                prop="adminPassword"
                 label="密码"
                 width="180">
         </el-table-column>
         <el-table-column
+                prop="adminName"
+                label="姓名"
+                width="180">
+        </el-table-column>
+        <el-table-column
                 sortable
-                prop="create_time"
-                label="创建时间">
+                width="180"
+                prop="adminLastTime"
+                label="最后登录时间">
           <template slot-scope="scope">
-            {{scope.row.create_time | dateFormat}}
+            {{scope.row.adminLastTime | dateFormat}}
           </template>
         </el-table-column>
         <el-table-column
-                label="状态">
-          <template slot-scope="scope">
-            <el-tag :type="scope.row.status==='正常' ? '' : 'danger'">
-              {{scope.row.status}}
+                label="状态"
+                align="center">
+          <template>
+            <el-tag>
+              {{'正常'}}
             </el-tag>
           </template>
         </el-table-column>
+
         <el-table-column
-                label="权限">
-          <template slot-scope="scope">
-            <el-tag :type="scope.row.power >= 5 ? 'success' : ''">{{scope.row.power >= 5 ? "超级管理员" : "管理员"}}</el-tag>
-          </template>
+                prop="adminIp"
+                label="ip"
+                width="180">
         </el-table-column>
+
         <el-table-column
                 label="操作"
                 width="170">
           <template slot-scope="scope">
-            <el-button size="mini" type="success" @click="editUser(scope.row)"
-                       :disabled="inputDis(scope.row.userName)">
+            <el-button size="mini" type="success" @click="editUser(scope.row.adminId)"
+                       :disabled="(adminPower === 1 ? false : true) || (scope.row.adminAccount=== 'admin')">
               <i class="el-icon-edit"></i>编辑
             </el-button>
-            <el-button size="mini" type="danger" @click="deleteUser(scope.row.id)"
-                       :disabled="inputDis(scope.row.userName)">
+            <el-button size="mini" type="danger" @click="deleteUser(scope.row.adminId)"
+                       :disabled="(adminPower === 1 ? false : true) || (scope.row.adminAccount=== 'admin')">
               <i class="el-icon-delete"></i>删除
             </el-button>
           </template>
@@ -84,7 +92,7 @@
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
               :current-page="AdminUsersParams.pageNum"
-              :page-sizes="[2, 4, 8, 10]"
+              :page-sizes="[5,10,20]"
               :page-size="AdminUsersParams.pageSize"
               layout="total, sizes, prev, pager, next, jumper"
               :total="tableDataLength">
@@ -100,26 +108,21 @@
             :before-close="handleClose"
     >
       <!--      内容模块-->
-      <el-form :model="editAdminUserData" status-icon :rules="addAdminUserDataRules" ref="editUserForm"
-               label-width="100px" class="demo-ruleForm">
-        <el-form-item label="用户名" prop="userName">
-          <el-input type="text" v-model="editAdminUserData.userName" clearable></el-input>
+      <el-form :model="editAdminUserData" status-icon ref="editUserForm"
+               label-width="100px" class="demo-ruleForm" :rules="editAdminRules">
+        <el-form-item label="用户名" prop="adminAccount">
+          <el-input type="text" v-model="editAdminUserData.adminAccount" clearable></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="passWord">
-          <el-input type="text" v-model="editAdminUserData.passWord" clearable></el-input>
+        <el-form-item label="密码" prop="adminPassword">
+          <el-input type="text" v-model="editAdminUserData.adminPassword" clearable></el-input>
         </el-form-item>
-        <el-form-item label="权限" prop="power">
-          <el-select v-model="editAdminUserData.power" placeholder="请更改权限">
-            <el-option label="超级管理员" value="超级管理员"></el-option>
-            <el-option label="管理员" value="管理员"></el-option>
-          </el-select>
+        <el-form-item label="确认密码" prop="adminPasswordAgain">
+          <el-input type="text" v-model="editAdminUserData.adminPasswordAgain" clearable></el-input>
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="editAdminUserData.status" placeholder="请更改状态">
-            <el-option label="正常" value="正常"></el-option>
-            <el-option label="冻结" value="冻结"></el-option>
-          </el-select>
+        <el-form-item label="姓名" prop="adminName">
+          <el-input type="text" v-model="editAdminUserData.adminName" clearable></el-input>
         </el-form-item>
+
       </el-form>
       <span slot="footer" class="dialog-footer">
           <el-button @click="editDialogVisible = false">取 消</el-button>
@@ -137,50 +140,56 @@
             :before-close="handleClose"
     >
       <!--      添加管理员表单内容-->
-      <el-form :model="addAdminUserData" status-icon :rules="addAdminUserDataRules" ref="addUserForm"
+      <el-form :model="addAdminUserData" status-icon ref="addUserForm"
                label-width="100px"
+               :rules="addAdminRules"
                class="demo-ruleForm"
                label-position="left">
-        <el-form-item label="用户名：" prop="userName">
-          <el-input v-model="addAdminUserData.userName" autocomplete="off"></el-input>
+        <el-form-item label="姓名：" prop="adminName">
+          <el-input v-model="addAdminUserData.adminName" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码：" prop="passWord">
-          <el-input v-model="addAdminUserData.passWord" autocomplete="off"></el-input>
+        <el-form-item label="用户名：" prop="adminAccount">
+          <el-input v-model="addAdminUserData.adminAccount" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="确认密码：" prop="passWordAgain">
-          <el-input v-model="addAdminUserData.passWordAgain" autocomplete="off"></el-input>
+        <el-form-item label="密码：" prop="adminPassword">
+          <el-input v-model="addAdminUserData.adminPassword" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="权限">
-          <el-select v-model="addAdminUserData.power" placeholder="请选择权限">
-            <el-option label="超级管理员" value="超级管理员"></el-option>
-            <el-option label="管理员" value="管理员"></el-option>
-          </el-select>
+        <el-form-item label="确认密码：" prop="adminPasswordAgain">
+          <el-input v-model="addAdminUserData.adminPasswordAgain" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-          <el-button @click="addUserDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="submitAddUser">确 定</el-button>
-      </span>
+              <el-button @click="addUserDialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="submitAddUser">确 定</el-button>
+          </span>
     </el-dialog>
+
+    <not-found class="not-found" v-show="adminPower===1 ? false : true"/>
   </div>
 </template>
 
 <script>
   import {
     getAllSuperUsers,
-    getRuleSuperUsers,
     deleteAdminUsersById,
+    editAdminUser,
+    getSingleAdminById,
     addAdminUser,
-    searchAdminUser,
-    editAdminUser
+    getRuleSuperUsers
   } from "network/super_users";
+  import {Base64} from 'js-base64'
+
+  import NotFound from 'views/404'
 
   export default {
     name: "SuperUsers",
+    components: {
+      NotFound
+    },
     data() {
-      //添加用户  输入框校验
+      // 添加用户  输入框校验
       let validateUser = (rule, value, callback) => {
-        if (!/^[a-zA-Z0-9_-]{6,16}$/.test(value)) {
+        if (!/^[a-zA-Z0-9_-]{3,11}$/.test(value)) {
           callback(new Error("用户名必须是字母，数字，下划线组成！"));
         } else {
           callback();
@@ -188,15 +197,22 @@
       };
       //添加密码  输入框校验
       let validatePassWord = (rule, value, callback) => {
-        if (!/^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,20}$/.test(value)) {
-          callback(new Error("密码需要包括数字和英文！"));
+        if (!/^[a-zA-Z0-9_-]{3,11}$/.test(value)) {
+          callback(new Error("密码必须是字母，数字，下划线组成！"));
         } else {
           callback();
         }
       };
       //添加再次输入密码  输入框校验
       let validatePassWordAgain = (rule, value, callback) => {
-        if (value !== this.addAdminUserData.passWord) {
+        if (value !== this.editAdminUserData.adminPassword) {
+          callback(new Error("两次输入密码不一样"));
+        } else {
+          callback();
+        }
+      };
+      let validatePassWordAgain2 = (rule, value, callback) => {
+        if (value !== this.addAdminUserData.adminPassword) {
           callback(new Error("两次输入密码不一样"));
         } else {
           callback();
@@ -207,36 +223,54 @@
         tableDataLength: 0,
         AdminUsersParams: {
           pageNum: 1,
-          pageSize: 10
+          pageSize: 5
         },
+        isLoading: true,
         searchAdminUser: "",
         editDialogVisible: false,
         editAdminUserData: {},
+        isEditUserId: null,
+
         addUserDialogVisible: false,
+        adminPower: null,
         addAdminUserData: {
-          userName: "",
-          passWord: "",
-          passWordAgain: "",
-          power: "管理员"
+          adminAccount: "",
+          adminPassword: "",
+          adminPasswordAgain: "",
+          adminName: "",
         },
-        addAdminUserDataRules: {
-          userName: [
-            { required: true, trigger: "change", message: "请输入用户名" },
-            { min: 6, max: 16, message: "用户名不得低于6位且不超过16位", trigger: "change" },
-            { validator: validateUser, trigger: "change" }
+        editAdminRules: {
+          adminAccount: [
+            {required: true, trigger: "change", message: "请输入用户名"},
+            {min: 3, max: 11, message: "用户名不得低于3位且不超过11位", trigger: "change"},
+            {validator: validateUser, trigger: "change"}
           ],
-          passWord: [
-            { required: true, trigger: "change", message: "请输入密码" },
-            { min: 6, max: 20, message: "密码不得低于6位且不超过20位", trigger: "change" },
-            { validator: validatePassWord, trigger: "change" }
+          adminPassword: [
+            {required: true, trigger: "change", message: "请输入密码"},
+            {min: 3, max: 11, message: "密码不得低于3位且不超过11位", trigger: "change"},
+            {validator: validatePassWord, trigger: "change"}
           ],
-          passWordAgain: [
-            { required: true, trigger: "change", message: "请输入确认密码" },
-            { validator: validatePassWordAgain, trigger: "change" }
+          adminPasswordAgain: [
+            {required: true, trigger: "change", message: "请确认密码"},
+            {validator: validatePassWordAgain, trigger: "change"}
           ]
         },
-        loginUserName: "",
-        loginUserPower: null
+        addAdminRules: {
+          adminAccount: [
+            {required: true, trigger: "change", message: "请输入用户名"},
+            {min: 3, max: 11, message: "用户名不得低于3位且不超过11位", trigger: "change"},
+            {validator: validateUser, trigger: "change"}
+          ],
+          adminPassword: [
+            {required: true, trigger: "change", message: "请输入密码"},
+            {min: 3, max: 11, message: "密码不得低于3位且不超过11位", trigger: "change"},
+            {validator: validatePassWord, trigger: "change"}
+          ],
+          adminPasswordAgain: [
+            {required: true, trigger: "change", message: "请确认密码"},
+            {validator: validatePassWordAgain2, trigger: "change"}
+          ]
+        }
       };
     },
     computed: {
@@ -249,40 +283,59 @@
     },
     methods: {
       //初始化管理员信息
-      getSuperUsersData() {
-        getAllSuperUsers().then(d => {
-          this.tableDataLength = d.data.length;
-        });
-        getRuleSuperUsers(this.AdminUsersParams.pageNum, this.AdminUsersParams.pageSize)
-          .then(d => {
-            this.tableData = d.data;
-          });
+      async getSuperUsersData() {
+        try {
+          let token = localStorage.getItem('token')
+          if (token) {
+            let d = await getAllSuperUsers(token)
+            //获取长度
+            this.tableDataLength = d.length
+            let data = await getRuleSuperUsers(this.AdminUsersParams.pageNum, this.AdminUsersParams.pageSize, token)
+            this.tableData = data.data
+            this.isLoading = false
+          } else {
+            this.$router.push('/login')
+          }
+        } catch (e) {
+          this.$message({
+            type: 'error',
+            message: '服务器响应错误！'
+          })
+        }
+        // getRuleSuperUsers(this.AdminUsersParams.pageNum, this.AdminUsersParams.pageSize)
+        //   .then(d => {
+        //     this.tableData = d.data;
+        //   });
       },
 
 
       //删除单个管理员
-      deleteUser(d) {
+      deleteUser(ds) {
         this.$confirm("您确定要删除该管理员吗?", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning"
-        }).then(() => {
-          deleteAdminUsersById(d).then(d => {
-            if (d.code === "200") {
+        }).then(async () => {
+          let token = localStorage.getItem('token')
+          if (token) {
+            let d = await deleteAdminUsersById(ds, token)
+            console.log(d);
+            if (d.code === 200) {
               this.$message({
-                message: "嘻嘻！删除成功！",
-                center: true,
-                type: "success"
-              });
-              this.getSuperUsersData();
+                type: 'success',
+                message: '删除成功'
+              })
+
+              this.getSuperUsersData()
             } else {
               this.$message({
-                message: "服务器错误！删除失败了！",
-                center: true,
-                type: "error"
-              });
+                type: 'error',
+                message: '删除失败，权限不足'
+              })
             }
-          });
+          } else {
+            this.$router.push('/login')
+          }
         }).catch(() => {
           this.$message({
             type: "info",
@@ -293,85 +346,106 @@
       },
 
 
+      //获取管理员权限
+      getPowerByAdmin() {
+        let power = Base64.decode(localStorage.getItem('power'))
+        this.adminPower = parseInt(power.replace(/lancer/g, ''))
+      },
+
+
       //编辑单个管理员
-      editUser(d) {
-        console.log(d);
+      async editUser(d) {
         this.editDialogVisible = true;
-        this.editAdminUserData = d;
-        this.editAdminUserData.power = this.editAdminUserData.power >= 5 ? "超级管理员" : "管理员";
+        this.isEditUserId = d
+        let data = await getSingleAdminById(d)
+        let {adminAccount, adminName, adminPassword} = data
+        this.$set(this.editAdminUserData, 'adminAccount', adminAccount)
+        this.$set(this.editAdminUserData, 'adminName', adminName)
+        this.$set(this.editAdminUserData, 'adminPassword', adminPassword)
+        this.$set(this.editAdminUserData, 'adminPasswordAgain', adminPassword)
       },
       //确认编辑
       submitEditUser() {
-        this.editUserFormRef.validate(r => {
+        this.editUserFormRef.validate(async r => {
+          //如果校验成功  提交表单
           if (r) {
-            let { userName: uN, passWord: pD, status: sta, id: uid } = this.editAdminUserData;
-            let data = {};
-            data.userName = uN;
-            data.passWord = pD;
-            data.status = sta;
-            data.id = uid;
-            data.power = this.editAdminUserData.power === "管理员" ? 4 : 5;
-
-            editAdminUser(data).then(d => {
-              if (d.code === "200") {
+            let token = localStorage.getItem('token')
+            if (token) {
+              let {adminName, adminAccount, adminPassword} = this.editAdminUserData
+              try {
+                let d = await editAdminUser({adminId: this.isEditUserId, adminName, adminAccount, adminPassword}, token)
+                if (d.code === 200) {
+                  this.$message({
+                    type: 'success',
+                    message: '更新成功！'
+                  })
+                  this.editDialogVisible = false;
+                  //更新表格
+                  this.getSuperUsersData()
+                } else {
+                  this.$message({
+                    type: 'error',
+                    message: '更新失败！'
+                  })
+                }
+              } catch (e) {
                 this.$message({
-                  type: "success",
-                  message: "修改成功",
-                  duration: 2000
-                });
+                  type: 'error',
+                  message: '服务器响应错误！'
+                })
               }
-              this.editDialogVisible = false;
-              this.getSuperUsersData();
-            });
+            } else {
+              this.$router.push('/login')
+            }
           } else {
             this.$message({
-              type: "error",
-              message: "请检查表单是否填写准确完整！",
-              duration: 2000
-            });
-
+              type: 'warning',
+              message: '请检查表单信息是否准确！'
+            })
           }
         });
       },
 
 
       // 添加单个管理员
-      addAdminUser() {
+      addAdminUsers() {
         this.addUserDialogVisible = true;
       },
 
       //确认添加管理员
       submitAddUser() {
-        this.addUserFormRef.validate(r => {
+        this.$refs.addUserForm.validate(async r => {
           //校验成功  传数据
           if (r) {
-            let { userName: uN, passWord: pD } = this.addAdminUserData;
-            let data = {};
-            data.userName = uN;
-            data.passWord = pD;
-            if (this.addAdminUserData.power === "管理员") {
-              data.power = 4;
-            } else {
-              data.power = 5;
-            }
-            addAdminUser(data).then(d => {
-              if (d.code === "200") {
-                this.addUserDialogVisible = false;
+            let token = localStorage.getItem('token')
+            if (token) {
+              try {
+                let {adminName, adminAccount, adminPassword} = this.addAdminUserData
+                let d = await addAdminUser({adminName, adminAccount, adminPassword}, token)
+                if (d.code === 200) {
+                  this.$message({
+                    type: 'success',
+                    message: '添加成功！'
+                  })
+
+                  //刷新列表
+                  this.getSuperUsersData()
+                  this.addUserDialogVisible = false
+                } else {
+                  this.$message({
+                    type: 'success',
+                    message: '添加失败！'
+                  })
+                }
+              } catch (e) {
                 this.$message({
-                  type: "success",
-                  message: "添加管理员成功！",
-                  duration: 2000
-                });
-                //重新请求赋值
-                this.getSuperUsersData();
-              } else if (d.code === "500") {
-                this.$message({
-                  type: "error",
-                  message: "用户名已经存在！",
-                  duration: 2000
-                });
+                  type: 'error',
+                  message: '服务器错误！'
+                })
               }
-            });
+            } else {
+              this.$router.push('/login')
+            }
           } else {
             this.$message({
               type: "error",
@@ -385,75 +459,55 @@
       // 关闭添加的dialog  重置表单数据
       closeAddUserDialog() {
         this.addAdminUserData = {
-          userName: "",
-          passWord: "",
-          passWordAgain: "",
-          power: "管理员"
+          adminAccount: "",
+          adminPassword: "",
+          adminPasswordAgain: "",
+          adminName: "",
         };
       },
 
       // 关闭前的回调
       handleClose(done) {
         this.$confirm("确认关闭？")
-          .then(_ => {
-            done();
-          })
-          .catch(_ => {
-          });
-      },
-
-
-      //搜索单个管理员用户
-      searchAdminUsers() {
-        searchAdminUser(this.searchAdminUser).then(d => {
-          if (d.status.code === "200") {
-            this.tableData = [];
-            this.tableData.push(d.admin);
-          } else {
-            this.$message.error("查询失败！用户名不存在");
-          }
-        });
-      },
-
-
-      // 搜索输入框没值的时候显示所有
-      searchAdminUserInput() {
-        if (this.searchAdminUser === "") {
-          this.getSuperUsersData();
-        }
+            .then(_ => {
+              done();
+            })
+            .catch(_ => {
+            });
       },
 
 
       //更改当前页
       handleCurrentChange(val) {
         this.AdminUsersParams.pageNum = val;
+        this.isLoading = true
         this.getSuperUsersData();
       },
       //更改每页条数
       handleSizeChange(val) {
         this.AdminUsersParams.pageSize = val;
+        this.isLoading = true
         this.getSuperUsersData();
       },
 
-      inputDis(d) {
-        let a  = this.loginUserName === d ? false : true
-        let b = this.loginUserPower >=5 ? false : true
-        if(a===false || b===false){
-          return false
-        }
-        if(a===true || b===false){
-          return true
-        }
-      }
+
     },
 
 
     created() {
-      this.getSuperUsersData();
-      //获取sessionstorage的username
-      this.loginUserName = window.sessionStorage.getItem("username") || "";
 
-      this.loginUserPower = window.sessionStorage.getItem("power");
+
+      this.getSuperUsersData();
+
+      //获取用户权限
+      this.getPowerByAdmin()
+
+      if (this.adminPower !== 1) {
+        this.$message({
+          type: 'error',
+          message: '抱歉！您没有权限访问！'
+        })
+      }
     }
 
   };
@@ -467,5 +521,10 @@
 
   .el-pagination {
     margin-top: 20px;
+  }
+
+  .not-found {
+    top: 50%;
+    left: 60%;
   }
 </style>

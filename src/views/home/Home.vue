@@ -2,13 +2,14 @@
   <el-container>
     <el-header>
       <div style="color: #fff;" class="left_logo">
-          寻导-后台管理
+        <img src="~assets/logoT.png" alt="" style="width: 45px;">
+        安心兑-后台管理
       </div>
       <div class="top_user">
-        <img src="~assets/main-logo.png" alt="">
+        <!--        <img src="~assets/main-logo.png" alt="">-->
         <el-dropdown @command="signOut" style="cursor: pointer">
         <span class="el-dropdown-link" style="color: #fff;">
-          您好：{{loginUserName}}<i class="el-icon-arrow-down el-icon--right"></i>
+      {{powerName}}：{{loginUserName}}<i class="el-icon-arrow-down el-icon--right"></i>
         </span>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="退出" icon="el-icon-s-promotion">退出</el-dropdown-item>
@@ -25,7 +26,7 @@
             <el-menu router
                      :collapse="iscollapse"
                      unique-opened
-                     default-active="/home/superusers"
+                     :default-active="changeActiveRoute"
                      :collapse-transition="false"
                      background-color="#313743"
                      text-color="#fff"
@@ -52,7 +53,9 @@
       <el-main>
         <transition enter-active-class="fadeIn animated" leave-active-class="fadeOut animated"
                     :duration="{enter:100,leave:100}" mode="out-in">
-          <router-view/>
+          <keep-alive include="CommandCoin,CommandProducts,OrderList,WithDrawList">
+            <router-view/>
+          </keep-alive>
         </transition>
       </el-main>
     </el-container>
@@ -60,82 +63,151 @@
 </template>
 
 <script>
+  import {Base64} from 'js-base64'
+
   export default {
     name: "Home",
     created() {
     },
-    computed:{
-    },
+    computed: {},
     data() {
       return {
-        asideNavList: [
-          {
-            title: "管理员管理",
-            childeren: [{
-              title: "管理员列表",
-              index: "/home/superusers"
-            }],
-            index: "1"
-          },
-          {
-            title: "用户管理",
-            childeren: [{
-              title: "用户列表",
-              index: "/home/users"
-            }],
-            index: "2"
-          },
-          {
-            title: "导游管理",
-            childeren: [{
-              title: "导游列表",
-              index: "/home/guides"
-            }],
-            index: "3"
-          },
-          // {
-          //   title: "留言管理",
-          //   childeren: [{
-          //     title: "留言信息列表",
-          //     index: "/home/messages"
-          //   }],
-          //   index: "4"
-          // },
-          {
-            title: "订单管理",
-            childeren: [{
-              title: "全部订单",
-              index: "/home/allorders"
-            }],
-            index: "4"
-          },
-          {
-            title: "数据统计",
-            childeren: [
-              { title: "数据统计图", index: "/home/alldata" }
-            ],
-            index: "5"
-          }
-        ],
+        adminPower: null,
+        asideNavList: [],
         asideNavListIcon: {
           "1": "el-icon-s-custom",
           "2": "el-icon-user-solid",
           "3": "el-icon-s-help",
-          "4": "el-icon-s-comment",
-          "5": "el-icon-s-order",
-          "6": "el-icon-s-platform"
+          "4": "el-icon-edit-outline",
+          "5": "el-icon-money",
+          "6": "el-icon-bank-card",
+          "7": "el-icon-message-solid",
+          "8": "el-icon-edit"
         },
         iscollapse: false,
-        loginUserName: ""
+        loginUserName: "",
+        powerName: "",
+        changeActiveRoute: ''
       };
     },
     methods: {
+      // 获取是否是超级管理员
+      //获取管理员权限
+      getPowerByAdmin() {
+        let power = Base64.decode(localStorage.getItem('power'))
+        this.adminPower = parseInt(power.replace(/lancer/g, ''))
+        if (this.adminPower === 1) {
+          this.asideNavList = [
+            {
+              title: "管理员管理",
+              childeren: [
+                {
+                  title: "管理员管理",
+                  index: "/home/superusers"
+                },
+                {
+                  title: "修改密码",
+                  index: "/home/changeAdminPsd"
+                }
+              ],
+              index: "1"
+            },
+            {
+              title: "用户管理",
+              childeren: [{
+                title: "用户列表",
+                index: "/home/users"
+              }],
+              index: "2"
+            },
+            {
+              title: "兑换银行管理",
+              childeren: [
+                {
+                  title: "兑换银行管理",
+                  index: "/home/commandBank"
+                },
+                {
+                  title: "兑换卷管理",
+                  index: "/home/commandCoin"
+                },
+                {
+                  title: "兑换产品管理",
+                  index: "/home/commandProducts"
+                }
+              ],
+              index: "3"
+            },
+            {
+              title: "报单记录表",
+              childeren: [{
+                title: "报单记录表",
+                index: "/home/orderList"
+              }],
+              index: "4"
+            },
+            {
+              title: '提现记录表',
+              childeren: [{
+                title: "提现记录表",
+                index: "/home/withdrawList"
+              }],
+              index: "5"
+            },
+            {
+              title: '收入记录表',
+              childeren: [{
+                title: "收入记录表",
+                index: "/home/incomeList"
+              }],
+              index: "6"
+            },
+            {
+              title: '公告管理',
+              childeren: [{
+                title: "公告管理",
+                index: "/home/noticeList"
+              }],
+              index: "7"
+            },
+            {
+              title: '客服报单',
+              childeren: [{
+                title: "客服报单",
+                index: "/home/manualOrder"
+              }],
+              index: "8"
+            }
+          ]
+        } else {
+          this.asideNavList = [{
+            title: "管理员管理",
+            childeren: [
+              {
+                title: "修改密码",
+                index: "/home/changeAdminPsd"
+              }
+            ],
+            index: "1"
+          },
+            {
+              title: '客服报单',
+              childeren: [{
+                title: "客服报单",
+                index: "/home/manualOrder"
+              }],
+              index: "8"
+            }]
+        }
+      },
+
       changeCollapse() {
         this.iscollapse = !this.iscollapse;
       },
       //获取登录来的用户名
       getUserName() {
-        this.loginUserName = window.sessionStorage.getItem("username");
+        this.loginUserName = Base64.decode(localStorage.getItem("adminAcc"));
+        this.powerName = parseInt(Base64.decode(localStorage.getItem('power')).replace(/lancer/g, '')) === 1 ? '超级管理员' : "管理员"
       },
       //退出点击
       signOut(c) {
@@ -146,12 +218,30 @@
             message: "您已安全退出！",
             duration: 2000
           });
+          localStorage.removeItem('token')
+          localStorage.removeItem('adminAcc')
+          localStorage.removeItem('adminNam')
+          localStorage.removeItem('power')
           this.$router.push("/login");
         }
       }
     },
     created() {
+      this.getPowerByAdmin()
       this.getUserName();
+      let name = this.loginUserName
+      this.$message({
+        type: 'success',
+        message: `欢迎回来${name}`
+      })
+    },
+    watch: {
+      '$route': {
+        immediate: true,
+        handler(newV) {
+          this.changeActiveRoute = newV.fullPath
+        }
+      }
     }
   };
 </script>
@@ -184,11 +274,13 @@
   .el-main {
     background-color: #E9EDF1;
   }
+
   .my-collapse {
     height: 40px;
     width: 100%;
     background-color: rgba(255, 255, 255, .3);
     text-align: center;
+    cursor: pointer;
 
     > i {
       color: #fff;
@@ -205,7 +297,7 @@
     margin-right: 20px;
   }
 
-  .left_logo{
+  .left_logo {
     font-size: 24px;
     font-weight: 700;
     color: #E9EDF1;

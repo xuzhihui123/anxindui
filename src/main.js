@@ -11,6 +11,9 @@ Vue.use(ElementUI);
 Vue.config.productionTip = false;
 
 
+
+
+
 import "assets/css/common.css";
 import "animate.css";
 

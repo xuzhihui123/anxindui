@@ -15,7 +15,8 @@ module.exports = {
         "common":"components/common",
         "content":"components/content",
         "network": "@/network",
-        "views": "@/views"
+        "views": "@/views",
+        "utils":'@/utils'
       }
     }
   }

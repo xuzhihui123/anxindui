@@ -8,86 +8,64 @@ import { request } from "network/request";
 import Qs from "qs";
 
 
-//获取所有用户列表
+//获取用户分页  POST /user/getUserListByPage
 
-export function getAllUserList() {
-  return request({
-    method: "get",
-    url: "/getUser"
-  });
-}
-
-//根据Id删除用户
-export function deleteSingleUserById(data) {
+export function getUserListByPage(pageNum,pageSize) {
   return request({
     method: "post",
-    url:'/deleteUser',
-    data,
-    transformRequest: [function(data) {
-      data = Qs.stringify(data);
-      return data;
-    }],
-    headers:{'Content-Type':'application/x-www-form-urlencoded'}
-  });
-}
-
-//根据id获取个人用户信息
-export function getSingleUserById(data) {
-  return request({
-    method: "post",
-    url:'/getUserById',
-    data,
-    transformRequest: [function(data) {
-      data = Qs.stringify(data);
-      return data;
-    }],
-    headers:{'Content-Type':'application/x-www-form-urlencoded'}
-  });
-}
-
-//根据id修改用户信息
-export function updateSingleUserById(data) {
-  return request({
-    method: "post",
-    url:'/updateUserByAdmin',
-    data,
-    transformRequest: [function(data) {
-      data = Qs.stringify(data);
-      return data;
-    }],
-    headers:{'Content-Type':'application/x-www-form-urlencoded'}
-  });
-}
-
-//获取头像上传到服务器返回的url
-export function submitAvator(data) {
-  return request({
-    method:'post',
-    url:'/upload',
-    data,
-    headers:{"Content-Type": "multipart/form-data"}
-  })
-}
-
-//获取用户分页
-export function getRuleUsers(pageNum,pageSize) {
-  return request({
-    method:'get',
-    url:'/user/page',
-    params:{
+    url: "/user/getUserListByPage",
+    data:{
       pageNum,
       pageSize
     },
-  })
+    transformRequest: [function (data) {
+      data = Qs.stringify(data);
+      return data;
+    }],
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+  });
 }
 
-//根据用户名搜索用户
-export function searchUserByName(userName) {
+
+//冻结用户  POST /user/freezeUser
+export function freezeUser(userId) {
   return request({
-    method:'get',
-    url:'/searchUser',
-    params:{
-      userName
+    method: "post",
+    url: "/user/freezeUser",
+    data:{
+      userId
     },
-  })
+    transformRequest: [function (data) {
+      data = Qs.stringify(data);
+      return data;
+    }],
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+  });
+}
+
+//解冻用户  POST /user/unFreezeUser
+export function unFreezeUser(userId) {
+  return request({
+    method: "post",
+    url: "/user/unFreezeUser",
+    data:{
+      userId
+    },
+    transformRequest: [function (data) {
+      data = Qs.stringify(data);
+      return data;
+    }],
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+  });
+}
+
+
+//搜索分页 GET /user/selectUserByBlur
+
+export function selectUserByBlur(params) {
+  return request({
+    method: "get",
+    url: "/user/selectUserByBlur",
+    params
+  });
 }

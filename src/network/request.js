@@ -5,11 +5,14 @@
  * @Last Modified time: 2019/12/12
  */
 import  axios from 'axios'
-export function request(config) {
+export function request(config,token) {
   const instance  = axios.create({
-     baseURL:'http://49.235.26.253:8082'
+     baseURL:'http://192.168.3.47:8081/'
   })
   instance.interceptors.request.use(config=>{
+    if(token){
+      config.headers['token'] = token
+    }
     return config
   },err=>{
     return Promise.reject(err)

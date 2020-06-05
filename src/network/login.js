@@ -13,7 +13,7 @@ import Qs from "qs";
 export function adminlogin(data) {
   return request({
     method:'post',
-    url:'/adminLogin',
+    url:'/admin/adminLogin',
     data,
     transformRequest: [function (data) {
       data = Qs.stringify(data);
