@@ -51,7 +51,7 @@
               </el-form-item>
 
               <el-form-item label="上传图片：">
-                <el-image :src="props.row.orderImg">
+                <el-image :src="props.row.orderImg" style="width: 150px" :preview-src-list="bigImgList">
                   <div slot="error" class="image-slot">
                     暂无图片
                   </div>
@@ -147,6 +147,7 @@
 <script>
   import {getAdminOrderByOwn} from 'network/order'
   import getAdminUser from '@/mixs/getAdminUser'
+
   export default {
     name: "ManualOrder",
     mixins: [getAdminUser],
@@ -161,7 +162,9 @@
           pageNum: 1,
           pageSize: 5
         },
-        tableDataLength: null
+        tableDataLength: null,
+        //大图显示
+        bigImgList: []
       }
     },
     methods: {
@@ -178,6 +181,9 @@
           })
           let [data, count] = d.data
           this.orderListData = data
+          this.orderListData.forEach((item) => {
+            this.bigImgList.push(item.orderImg)
+          })
           this.tableDataLength = count
           this.tableisLoading = false
         } catch (e) {
@@ -203,12 +209,12 @@
       },
 
       //添加报单
-      goAddManualOrder(){
+      goAddManualOrder() {
         this.$router.push(`/home/addManualOrder`)
       }
     },
     created() {
-        this.getAdminOrderByOwn()
+      this.getAdminOrderByOwn()
     }
   }
 </script>

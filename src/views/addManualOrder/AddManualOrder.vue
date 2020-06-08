@@ -54,6 +54,30 @@
           <el-input v-model="addBdData.orderCheckMsg" autocomplete="off"></el-input>
         </el-form-item>
 
+        <el-form-item label="选择图片">
+          <el-upload
+                  class="upload-demo"
+                  ref="upload"
+                  action="http://www.dui1688.com/imgUpload"
+                  :multiple="false"
+                  :on-exceed="handleExceed"
+                  :on-remove="handleRemove"
+                  :limit="1"
+                  :on-change="changeFile"
+                  :auto-upload="false">
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+          </el-upload>
+        </el-form-item>
+
+        <el-form-item label="" v-show="isShowImg">
+          <el-image :src="fileList.url" :preview-src-list="previewList" style="width:150px;">
+            <div slot="placeholder" class="image-slot">
+              加载中<span class="dot">...</span>
+            </div>
+          </el-image>
+        </el-form-item>
+
         <el-form-item prop="orderCheckMsg">
           <el-button type="primary" @click="submitAddManualOrder" :loading="submitBdLoading">确认添加</el-button>
         </el-form-item>
@@ -63,6 +87,10 @@
 </template>
 
 <script>
+  import {fileToBase} from 'utils/fileToBase64'
+  import {
+    upLoadImg
+  } from 'network/commandBank'
   import {getAllBankList, getBankInfoById} from 'network/commandBank'
   import {manualCommitOrder} from 'network/order'
   import getAdminUser from '@/mixs/getAdminUser'
@@ -92,7 +120,8 @@
           orderKey: '',
           orderMsg: '',
           orderScore: '',
-          orderFaceValue: ''
+          orderFaceValue: '',
+          orderImg: ''
         },
         //添加报单的loading
         submitBdLoading: false,
@@ -128,6 +157,18 @@
         isOrderScore: '1',
         //是否检测orderFaceValue
         isOrderFaceValue: '1',
+
+
+        //上传图片
+        fileList: {
+          name: '',
+          url: '',
+          file: null
+        },
+        //是否显示图片
+        isShowImg: false,
+        //大图预览
+        previewList: []
       }
     },
     methods: {
@@ -169,63 +210,131 @@
             let orderMsgT = `${orderCheckMsg}（${adminPowerName}:${this.adminName}）- 添加报单`
 
             if (itemId !== -1) {
-              let submitData = await manualCommitOrder({
-                orderCheckMsg: orderMsgT,
-                orderItemId: itemId,
-                orderUserName,
-                orderUserPhone,
-                orderKey,
-                orderMsg,
-                orderAdminId: this.adminPower
-              })
-              if (submitData.msg === '用户不存在') {
+              if (!this.fileList.file) {
+                let submitData = await manualCommitOrder({
+                  orderCheckMsg: orderMsgT,
+                  orderItemId: itemId,
+                  orderUserName,
+                  orderUserPhone,
+                  orderKey,
+                  orderMsg,
+                  orderAdminId: this.adminPower
+                })
+                if (submitData.msg === '用户不存在') {
+                  //关闭loading
+                  this.submitBdLoading = false
+                  return this.$message({
+                    type: 'warning',
+                    message: '请输入正确的用户姓名和手机号码!'
+                  })
+                }
                 //关闭loading
                 this.submitBdLoading = false
-                return this.$message({
-                  type: 'warning',
-                  message: '请输入正确的用户姓名和手机号码!'
+                this.$message({
+                  type: 'success',
+                  message: '添加报单成功!'
                 })
+                this.$router.go(-1)
+              } else {
+                //先上传图片
+                let f = new FormData()
+                f.append('file', this.fileList.file)
+                let d = await upLoadImg(f)
+                let fileSrc = d.data
+                let submitData = await manualCommitOrder({
+                  orderCheckMsg: orderMsgT,
+                  orderItemId: itemId,
+                  orderUserName,
+                  orderUserPhone,
+                  orderKey,
+                  orderMsg,
+                  orderAdminId: this.adminPower,
+                  orderImg:fileSrc
+                })
+                if (submitData.msg === '用户不存在') {
+                  //关闭loading
+                  this.submitBdLoading = false
+                  return this.$message({
+                    type: 'warning',
+                    message: '请输入正确的用户姓名和手机号码!'
+                  })
+                }
+                //关闭loading
+                this.submitBdLoading = false
+                this.$message({
+                  type: 'success',
+                  message: '添加报单成功!'
+                })
+                this.$router.go(-1)
               }
-              //关闭loading
-              this.submitBdLoading = false
-
-              this.$message({
-                type: 'success',
-                message: '添加报单成功!'
-              })
-
-              this.$router.go(-1)
             } else {
-              let submitData = await manualCommitOrder({
-                orderCheckMsg: orderMsgT,
-                orderItemId: itemId,
-                orderUserName,
-                orderUserPhone,
-                orderKey,
-                orderMsg,
-                orderAdminId: this.adminPower,
-                orderBankName: bankName,
-                orderScore,
-                orderFaceValue
-              })
+              if(!this.fileList.file){
+                let submitData = await manualCommitOrder({
+                  orderCheckMsg: orderMsgT,
+                  orderItemId: itemId,
+                  orderUserName,
+                  orderUserPhone,
+                  orderKey,
+                  orderMsg,
+                  orderAdminId: this.adminPower,
+                  orderBankName: bankName,
+                  orderScore,
+                  orderFaceValue
+                })
 
-              if (submitData.msg === '用户不存在') {
+                if (submitData.msg === '用户不存在') {
+                  //关闭loading
+                  this.submitBdLoading = false
+                  return this.$message({
+                    type: 'warning',
+                    message: '请输入正确的用户姓名和手机号码!'
+                  })
+                }
                 //关闭loading
                 this.submitBdLoading = false
-                return this.$message({
-                  type: 'warning',
-                  message: '请输入正确的用户姓名和手机号码!'
+
+                this.$message({
+                  type: 'success',
+                  message: '添加报单成功!'
                 })
+
+                this.$router.go(-1)
+              }else{
+                let f = new FormData()
+                f.append('file', this.fileList.file)
+                let d = await upLoadImg(f)
+                let fileSrc = d.data
+                let submitData = await manualCommitOrder({
+                  orderCheckMsg: orderMsgT,
+                  orderItemId: itemId,
+                  orderUserName,
+                  orderUserPhone,
+                  orderKey,
+                  orderMsg,
+                  orderAdminId: this.adminPower,
+                  orderBankName: bankName,
+                  orderScore,
+                  orderFaceValue,
+                  orderImg:fileSrc
+                })
+                if (submitData.msg === '用户不存在') {
+                  //关闭loading
+                  this.submitBdLoading = false
+                  return this.$message({
+                    type: 'warning',
+                    message: '请输入正确的用户姓名和手机号码!'
+                  })
+                }
+                //关闭loading
+                this.submitBdLoading = false
+
+                this.$message({
+                  type: 'success',
+                  message: '添加报单成功!'
+                })
+
+                this.$router.go(-1)
               }
-              //关闭loading
-              this.submitBdLoading = false
-
-              this.$message({
-                type: 'success',
-                message: '添加报单成功!'
-              })
-
-              this.$router.go(-1)
             }
 
           } else {
@@ -236,7 +345,42 @@
             })
           }
         })
-      }
+      },
+
+
+      handleExceed(files, fileList) {
+        this.$message.warning(`只能选择一张图片哦~`);
+      },
+
+
+      changeFile(file, fileList) {
+        let f = file
+        let type = f.raw.type
+        if (type && (type === 'image/jpeg' || type === 'image/png' || type === 'image/jpg')) {
+          this.fileList.file = f.raw
+          //转换成base64
+          fileToBase(f.raw).then(r => {
+            this.fileList.name = f.raw.name
+            this.fileList.url = r
+            this.isShowImg = true
+            this.previewList.push(this.fileList.url)
+          })
+        } else {
+          this.$refs.upload.clearFiles()
+          return this.$message({
+            type: 'warning',
+            message: '请上传指定类型图片！'
+          })
+        }
+      },
+
+      handleRemove(file, fileList) {
+        this.fileList.file = null
+        this.fileList.name = ''
+        this.fileList.url = ''
+        this.isShowImg = false
+        this.previewList = []
+      },
     },
     created() {
       that = this

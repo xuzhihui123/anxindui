@@ -81,7 +81,7 @@
               </el-form-item>
 
               <el-form-item label="上传图片：">
-                <el-image :src="props.row.orderImg" style="width: 150px">
+                <el-image :src="props.row.orderImg" style="width: 150px" :preview-src-list="bigSrcList">
                   <div slot="error" class="image-slot">
                       暂无图片
                   </div>
@@ -215,6 +215,8 @@
     mixins: [show],
     data() {
       return {
+        //大图预览
+        bigSrcList:[],
         //表格加载
         tableisLoading: true,
         orderListData: [],
@@ -256,6 +258,9 @@
           if (d.status === 200) {
             this.tableisLoading = false
             this.orderListData = d.data[0]
+            this.orderListData.forEach(item=>{
+              this.bigSrcList.push(item.orderImg)
+            })
             this.tableDataLength = d.data[1]
           } else {
             this.tableisLoading = false
@@ -388,6 +393,10 @@
             }
 
             this.orderListData = d.data[0]
+            this.bigSrcList = []
+            this.orderListData.forEach(item=>{
+              this.bigSrcList.push(item.orderImg)
+            })
             this.tableDataLengths = d.data[1]
             //关闭loading
             this.tableisLoading = false
