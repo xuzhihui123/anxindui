@@ -51,7 +51,7 @@
               </el-form-item>
 
               <el-form-item label="上传图片：">
-                <el-image :src="props.row.orderImg" style="width: 150px" :preview-src-list="bigImgList">
+                <el-image :src="items" style="width: 150px;margin-left: 15px;" :preview-src-list="bigImgList" v-for="items in props.row.orderImg" :key="items">
                   <div slot="error" class="image-slot">
                     暂无图片
                   </div>
@@ -180,9 +180,15 @@
             pageSize
           })
           let [data, count] = d.data
+          data.forEach(item=>{
+            item.orderImg = item.orderImg.split(',')
+            item.orderImg = item.orderImg.slice(0,item.orderImg.length-1)
+          })
           this.orderListData = data
           this.orderListData.forEach((item) => {
-            this.bigImgList.push(item.orderImg)
+            item.orderImg.forEach(items=>{
+              this.bigImgList.push(items)
+            })
           })
           this.tableDataLength = count
           this.tableisLoading = false

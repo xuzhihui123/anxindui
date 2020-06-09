@@ -73,11 +73,11 @@
           >
           </el-table-column>
 
-          <el-table-column
-                  prop="coinOrgKey"
-                  label="机构积分价值"
-          >
-          </el-table-column>
+<!--          <el-table-column-->
+<!--                  prop="coinOrgKey"-->
+<!--                  label="机构积分价值"-->
+<!--          >-->
+<!--          </el-table-column>-->
 
           <el-table-column
                   label="操作"

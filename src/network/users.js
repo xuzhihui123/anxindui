@@ -69,3 +69,15 @@ export function selectUserByBlur(params) {
     params
   });
 }
+
+
+//根据手机号查询用户  GET /user/getUserByPhone
+export function getUserByPhone(phone) {
+  return request({
+    method: "get",
+    url: "/user/getUserByPhone",
+    params:{
+      phone
+    }
+  });
+}

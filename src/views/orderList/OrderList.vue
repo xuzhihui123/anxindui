@@ -81,7 +81,7 @@
               </el-form-item>
 
               <el-form-item label="上传图片：">
-                <el-image :src="props.row.orderImg" style="width: 150px" :preview-src-list="bigSrcList">
+                <el-image :src="items" style="width: 150px;margin-right: 15px;" :preview-src-list="bigSrcList" v-for="items in props.row.orderImg" :key="items">
                   <div slot="error" class="image-slot">
                       暂无图片
                   </div>
@@ -257,9 +257,16 @@
           let d = await getOrderList(this.orderListPage.pageNum, this.orderListPage.pageSize)
           if (d.status === 200) {
             this.tableisLoading = false
+
+            d.data[0].forEach(item=>{
+              item.orderImg = item.orderImg.split(',')
+              item.orderImg = item.orderImg.slice(0,item.orderImg.length-1)
+            })
             this.orderListData = d.data[0]
             this.orderListData.forEach(item=>{
-              this.bigSrcList.push(item.orderImg)
+              item.orderImg.forEach(items=>{
+                this.bigSrcList.push(items)
+              })
             })
             this.tableDataLength = d.data[1]
           } else {
@@ -392,10 +399,16 @@
               return this.getOrderList()
             }
 
+            d.data[0].forEach(item=>{
+              item.orderImg = item.orderImg.split(',')
+              item.orderImg = item.orderImg.slice(0,item.orderImg.length-1)
+            })
             this.orderListData = d.data[0]
             this.bigSrcList = []
             this.orderListData.forEach(item=>{
-              this.bigSrcList.push(item.orderImg)
+              item.orderImg.forEach(items=>{
+                this.bigSrcList.push(items)
+              })
             })
             this.tableDataLengths = d.data[1]
             //关闭loading

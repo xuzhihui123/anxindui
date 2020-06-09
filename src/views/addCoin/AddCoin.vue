@@ -32,9 +32,9 @@
           <el-input type="number" v-model="addCoinData.coinProxyKey" clearable></el-input>
         </el-form-item>
 
-        <el-form-item label="机构积分价值" prop="coinOrgKey">
-          <el-input type="number" v-model="addCoinData.coinOrgKey" clearable></el-input>
-        </el-form-item>
+<!--        <el-form-item label="机构积分价值" prop="coinOrgKey">-->
+<!--          <el-input type="number" v-model="addCoinData.coinOrgKey" clearable></el-input>-->
+<!--        </el-form-item>-->
       </el-form>
     </el-card>
     <el-card style="margin-top: 20px" v-show="adminPower ===1 ? true : false">
@@ -74,7 +74,7 @@
           coinCount: null,
           coinKey: null,
           coinProxyKey: null,
-          coinOrgKey: null
+          // coinOrgKey: null
         },
         coinId: null,
         addCoinDataRules: {
@@ -93,9 +93,9 @@
           coinProxyKey: [
             {required: true, trigger: 'change', message: '请输入代理积分价值'},
           ],
-          coinOrgKey: [
-            {required: true, trigger: 'change', message: '请输入机构积分价值'},
-          ]
+          // coinOrgKey: [
+          //   {required: true, trigger: 'change', message: '请输入机构积分价值'},
+          // ]
         },
         submitLoading: false,
 
@@ -116,12 +116,12 @@
       submitAddCoin() {
         this.submitLoading = true
         this.$refs.editUserForm.validate(async r => {
-          let {coinName, coinMsg, coinStart, coinCount, coinKey, coinProxyKey, coinOrgKey} = this.addCoinData
+          let {coinName, coinMsg, coinStart, coinCount, coinKey, coinProxyKey} = this.addCoinData
           if (r) {
             try {
               let d = await addSingleCoin({
                 coinBankId: this.coinId, coinName, coinMsg, coinStart,
-                coinCount, coinKey, coinProxyKey, coinOrgKey, coinText:this.contentEditor
+                coinCount, coinKey, coinProxyKey, coinOrgKey:coinProxyKey, coinText:this.contentEditor
               })
               if (d.code === 200) {
                 this.submitLoading = false

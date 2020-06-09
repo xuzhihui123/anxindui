@@ -245,3 +245,13 @@ export function upLoadImg(data) {
     headers: {"Content-Type": "multipart/form-data"}
   })
 }
+
+//上传多张图片接口
+export function upLoadImgs(data) {
+  return request({
+    method: 'post',
+    url: '/imgsUpload',
+    data,
+    headers: {"Content-Type": "multipart/form-data"}
+  })
+}

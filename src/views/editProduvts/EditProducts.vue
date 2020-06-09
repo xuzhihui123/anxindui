@@ -29,9 +29,9 @@
           <el-input type="number" v-model="addItemData.itemProxyPrice" clearable></el-input>
         </el-form-item>
 
-        <el-form-item label="机构价" prop="itemOrgPrice">
-          <el-input type="number" v-model="addItemData.itemOrgPrice" clearable></el-input>
-        </el-form-item>
+<!--        <el-form-item label="机构价" prop="itemOrgPrice">-->
+<!--          <el-input type="number" v-model="addItemData.itemOrgPrice" clearable></el-input>-->
+<!--        </el-form-item>-->
 
         <el-form-item>
           <el-button type="primary" @click="submitEdit" :loading="btnLoading">确认编辑</el-button>
@@ -71,9 +71,9 @@
           itemProxyPrice: [
             {required: true, trigger: 'change', message: '请输入代理价'}
           ],
-          itemOrgPrice: [
-            {required: true, trigger: 'change', message: '请输入机构价'}
-          ]
+          // itemOrgPrice: [
+          //   {required: true, trigger: 'change', message: '请输入机构价'}
+          // ]
         },
         addItemData: {
           itemScore: null,
@@ -81,7 +81,7 @@
           itemTime: null,
           itemPrice: null,
           itemProxyPrice: null,
-          itemOrgPrice: null
+          // itemOrgPrice: null
         },
         btnLoading: false
       }
@@ -110,10 +110,10 @@
         this.btnLoading = true
         this.$refs.addItemForm.validate(async r => {
           if (r) {
-            let {itemScore, itemName, itemTime, itemPrice, itemProxyPrice, itemOrgPrice} = this.addItemData
+            let {itemScore, itemName, itemTime, itemPrice, itemProxyPrice} = this.addItemData
             try {
               let d = await updateSingleItem(
-                  {itemScore, itemName, itemTime, itemPrice, itemProxyPrice, itemOrgPrice, itemId: this.itemId}
+                  {itemScore, itemName, itemTime, itemPrice, itemProxyPrice, itemOrgPrice:itemProxyPrice, itemId: this.itemId}
               )
               if (d.code === 200) {
                 this.btnLoading = false

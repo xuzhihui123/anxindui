@@ -72,11 +72,11 @@
           >
           </el-table-column>
 
-          <el-table-column
-                  prop="itemOrgPrice"
-                  label="机构价"
-          >
-          </el-table-column>
+<!--          <el-table-column-->
+<!--                  prop="itemOrgPrice"-->
+<!--                  label="机构价"-->
+<!--          >-->
+<!--          </el-table-column>-->
 
           <el-table-column
                   label="操作"

@@ -9,11 +9,13 @@
     <el-card style="margin-top: 20px">
       <el-form :model="editOrderData" status-icon ref="editUserForm"
                label-width="120px" class="demo-ruleForm" disabled>
-        <el-form-item label="用户id：" prop="userId">
-          <el-input v-model="editOrderData.userId" clearable></el-input>
+
+        <el-form-item label="用户姓名：" prop="userBankUsername">
+          <el-input v-model="editOrderData.userBankUsername" clearable></el-input>
         </el-form-item>
-        <el-form-item label="报单id：" prop="orderId">
-          <el-input v-model="editOrderData.orderId" clearable></el-input>
+
+        <el-form-item label="用户手机号：" prop="userPhone">
+          <el-input v-model="editOrderData.userPhone" clearable></el-input>
         </el-form-item>
 
         <el-form-item label="报单创建时间：" prop="orderCreateTime">
@@ -22,8 +24,10 @@
 
         <el-form-item label="报单截图：" prop="orderImg">
           <el-image
-                  style="width: 100px"
-                  :src="editOrderData.orderImg"
+                  v-for="item in editOrderData.orderImg"
+                  style="width: 100px;margin-right: 15px"
+                  :key="item"
+                  :src="item"
                   :preview-src-list="srcList">
           </el-image>
         </el-form-item>
@@ -109,10 +113,14 @@
           let d = await getOrderById(this.orderId)
           if (d.status === 200) {
             this.isShowMain = false
-            let d1 = d.data[0]
+            let d1 = {...d.data[0]}
+            d1.orderImg = d1.orderImg.split(',')
+            d1.orderImg = d1.orderImg.slice(0, d1.orderImg.length - 1)
             let d2 = d.data[1]
             Object.assign(this.editOrderData, d1, d2)
-            this.srcList.push(d.data[0].orderImg)
+            d1.orderImg.forEach((item) => {
+                this.srcList.push(item)
+            })
           } else {
             this.isShowMain = false
             this.$message({

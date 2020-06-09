@@ -32,9 +32,9 @@
           <el-input type="number" v-model="eidtCoinData.coinProxyKey" clearable></el-input>
         </el-form-item>
 
-        <el-form-item label="机构积分价值" prop="coinOrgKey">
-          <el-input type="number" v-model="eidtCoinData.coinOrgKey" clearable></el-input>
-        </el-form-item>
+<!--        <el-form-item label="机构积分价值" prop="coinOrgKey">-->
+<!--          <el-input type="number" v-model="eidtCoinData.coinOrgKey" clearable></el-input>-->
+<!--        </el-form-item>-->
       </el-form>
     </el-card>
     <el-card style="margin-top: 20px" v-show="adminPower===1 ? true : false">
@@ -74,7 +74,7 @@
           coinCount: null,
           coinKey: null,
           coinProxyKey: null,
-          coinOrgKey: null,
+          // coinOrgKey: null,
           coinText: null
         },
         coinId: null,
@@ -94,9 +94,9 @@
           coinProxyKey: [
             {required: true, trigger: 'change', message: '请输入代理积分价值'},
           ],
-          coinOrgKey: [
-            {required: true, trigger: 'change', message: '请输入机构积分价值'},
-          ]
+          // coinOrgKey: [
+          //   {required: true, trigger: 'change', message: '请输入机构积分价值'},
+          // ]
         },
         submitLoading: false,
         isShowMain: true,
@@ -147,7 +147,6 @@
               coinKey,
               coinCount,
               coinProxyKey,
-              coinOrgKey
             } = this.eidtCoinData
             try {
               let data = await updateCoinSingle({
@@ -158,7 +157,7 @@
                 coinKey,
                 coinCount,
                 coinProxyKey,
-                coinOrgKey,
+                coinOrgKey:coinProxyKey,
                 coinText: this.contentEditor
               })
               if (data.code === 200) {
