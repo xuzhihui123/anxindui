@@ -14,17 +14,24 @@
       class="demo-form-inline"
       style="margin-top: 20px"
     >
-      <el-form-item>
+      <el-form-item style="width:150px">
         <el-input v-model="searchIncomeSele.userName" placeholder="请输入姓名"></el-input>
       </el-form-item>
+
       <el-form-item>
         <el-input v-model="searchIncomeSele.phone" placeholder="请输入手机号码" type="number"></el-input>
       </el-form-item>
-      <el-form-item>
+      <el-form-item style="width:150px">
         <el-select v-model="searchIncomeSele.orderStatus" placeholder="请选择审核状态">
           <el-option label="审核通过" value="审核通过"></el-option>
           <el-option label="审核不通过" value="审核不通过"></el-option>
           <el-option label="未审核" value="未审核"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select v-model="searchIncomeSele.orderType" placeholder="请选择报单类型" style="width:150px">
+          <el-option label="客服报单" value="service"></el-option>
+          <el-option label="用户报单" value="client"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -213,7 +220,8 @@ export default {
         orderStatus: "",
         time: null,
         userName: "",
-        phone: ""
+        phone: "",
+        orderType: ""
       },
       //查询条件分页
       searchPageShow: false,
@@ -233,7 +241,6 @@ export default {
         );
         if (d.status === 200) {
           this.tableisLoading = false;
-          console.log(d);
 
           d.data[0].forEach(item => {
             item.orderImg = item.orderImg.split(",");
@@ -315,6 +322,7 @@ export default {
     goBackSearch() {
       //清空搜索信息
       this.searchIncomeSele.orderStatus = "";
+      this.searchIncomeSele.orderType = ""
       this.searchIncomeSele.time = null;
       this.searchIncomeSele.userName = "";
       this.searchIncomeSele.phone = "";
@@ -327,8 +335,20 @@ export default {
     //查询orderList
     async sumitSearchOrderList() {
       this.tableisLoading = true;
-      let { orderStatus, time, userName, phone } = this.searchIncomeSele;
-      if (!orderStatus.trim() && !userName.trim() && !phone.trim() && !time) {
+      let {
+        orderStatus,
+        time,
+        userName,
+        phone,
+        orderType
+      } = this.searchIncomeSele;
+      if (
+        !orderStatus.trim() &&
+        !userName.trim() &&
+        !phone.trim() &&
+        !time &&
+        !orderType
+      ) {
         this.$message({
           type: "warning",
           message: "请输入搜索条件！"
@@ -359,6 +379,7 @@ export default {
             before,
             after,
             orderStatus,
+            orderType,
             pageSize: this.orderListPages.pageSize,
             pageNum: this.orderListPages.pageNum
           });
@@ -425,6 +446,7 @@ export default {
     this.searchIncomeSele.time = null;
     this.searchIncomeSele.userName = "";
     this.searchIncomeSele.phone = "";
+    this.searchIncomeSele.orderType = ""
     this.orderListPages.pageNum = 1;
     this.orderListPages.pageSize = 5;
     this.searchPageShow = false;

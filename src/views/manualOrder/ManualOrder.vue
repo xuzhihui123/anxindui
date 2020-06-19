@@ -25,7 +25,7 @@
                 <span>{{ props.row.userInfo.userBankUsername }}</span>
               </el-form-item>
               <el-form-item label="手机号码：">
-                <span>{{ props.row.userInfo.userPhone }}</span>
+                <span>{{ props.row.orderUserPhone }}</span>
               </el-form-item>
               <el-form-item label="报单时间：">
                 <span>{{ props.row.orderCreateTime }}</span>
@@ -77,7 +77,7 @@
                 label="手机号码"
         >
           <template slot-scope="scope">
-            {{scope.row.userInfo.userPhone}}
+            {{scope.row.orderUserPhone}}
           </template>
         </el-table-column>
 
